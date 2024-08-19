@@ -42,6 +42,14 @@ func connectionDB() (*gorm.DB, error) {
 	return db, err
 }
 
+func errorDB(result *gorm.DB, c *gin.Context) bool {
+	if result.Error != nil {
+		c.JSON(500, gin.H{"error": result.Error})
+		return true
+	}
+	return false
+}
+
 func main() {
 	r := gin.Default()
 	db, err := connectionDB()
@@ -51,6 +59,21 @@ func main() {
 	}
 
 	db.AutoMigrate(&Tasks{})
+
+	r.POST("/todos/create", func(c *gin.Context) {
+		var tasks Tasks
+
+		if err := c.BindJSON(&tasks); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		result := db.Create(&tasks) // これなんで参照渡しなんだろう
+		if errorDB(result, c) {
+			return
+		}
+	})
+
 	r.GET("/todos", func(c *gin.Context) {
 		var todos []Tasks
 		db.Find(&todos)
