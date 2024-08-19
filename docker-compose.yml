@@ -1,12 +1,16 @@
-version: "3"
+version: "3.1"
 
 services:
   db:
     image: mysql
     container_name: db
+    networks:
+      - go_todo
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: go_todo
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
       TZ: "Asia/Tokyo"
     volumes:
       - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
@@ -16,7 +20,7 @@ services:
   app:
     build: .
     volumes:
-      - .:/app
+      - ./app:/app
     ports:
       - "8080:8080"
     networks:
@@ -27,9 +31,9 @@ services:
       - DATABASE_HOST=db
       - DATABASE_PORT=3306
       - DATABASE_USER=user
-      - DATABASE_ROOT_PASSWORD=password
       - DATABASE_PASSWORD=password
       - DATABASE_NAME=go_todo
+    tty: true
 
 volumes:
   db:
